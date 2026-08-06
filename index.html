@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced Entity Detector + Smart AI</title>
+    
+    <!-- TensorFlow.js & COCO-SSD Model for Real Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2"></script>
+
+    <style>
+        :root {
+            --glass: rgba(0, 0, 0, 0.4);
+            --glass-modal: rgba(20, 20, 20, 0.85);
+            --blur: blur(20px);
+            --ios-blue: #007AFF;
+            --ghost-red: #ff3b30;
+            --system-green: #34c759;
+            --system-yellow: #ffd60a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: #000; overflow: hidden; color: white; touch-action: none; }
+
+        /* Camera & Canvas Background */
+        #camera-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        video { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.1) brightness(0.9); transition: filter 0.3s; }
+        canvas { display: none; }
+
+        /* Scanned Entity Box */
+        .entity-box {
+            position: absolute;
+            border: 1.5px solid var(--ios-blue);
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1); /* Faster transition for ML tracking */
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+        }
+
+        .entity-box::before {
+            content: ''; position: absolute; top: -5px; left: -5px; 
+            width: 10px; height: 10px; border-top: 2px solid var(--ios-blue); border-left: 2px solid var(--ios-blue);
+        }
+
+        .label-container {
+            position: absolute; bottom: -45px; left: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            padding: 6px 10px; border-radius: 6px; border-left: 2px solid var(--ios-blue);
+            min-width: 120px;
+        }
+
+        .type-text { font-size: 11px; font-weight: bold; color: var(--ios-blue); text-transform: uppercase; display: block; letter-spacing: 0.5px; }
+        .dist-text { font-size: 10px; color: #ddd; margin-top: 2px; }
+
+        /* Liquid UI Panels */
+        .top-ui {
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+            width: 90%; padding: 15px; border-radius: 20px;
+            background: var(--glass); backdrop-filter: var(--blur);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 15px; z-index: 20;
+        }
+
+        .temp-fill-bg { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        #temp-bar { width: 20%; height: 100%; background: var(--system-green); transition: 1s ease-in-out; }
+
+        /* Floating Buttons (Top Right) */
+        .top-controls {
+            position: absolute; top: 110px; right: 5%;
+            display: flex; flex-direction: column; gap: 15px; z-index: 20;
+        }
+
+        .icon-btn {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: var(--glass); backdrop-filter: var(--blur);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            transition: 0.3s;
+        }
+        .icon-btn:active { transform: scale(0.9); }
+        .icon-btn svg { width: 22px; height: 22px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        
+        .icon-btn.active-torch { background: rgba(255, 255, 255, 0.9); border-color: white; }
+        .icon-btn.active-torch svg { stroke: black; fill: black; }
+
+        .bottom-ui {
+            position: absolute; bottom: 50px; width: 100%;
+            display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 20;
+        }
+
+        .shutter-btn {
+            width: 75px; height: 75px; border-radius: 50%;
+            border: 4px solid white; background: rgba(255,255,255,0.15);
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+        }
+        .shutter-inner { width: 55px; height: 55px; border-radius: 50%; background: white; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scanning .shutter-inner { background: var(--ghost-red); transform: scale(0.65); border-radius: 12px; }
+
+        .filter-row { display: flex; gap: 15px; background: var(--glass); backdrop-filter: var(--blur); padding: 10px 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .f-item { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); border: none; background: none; cursor: pointer; transition: 0.3s; }
+        .f-item.active { color: white; text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+        /* Warning Overlays */
+        #alert { position: absolute; top: 120px; width: 100%; text-align: center; color: var(--ghost-red); font-size: 14px; font-weight: 700; display: none; z-index: 15; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(255,0,0,0.5); }
+
+        /* Settings Modal */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: var(--blur);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: var(--glass-modal); border: 1px solid rgba(255,255,255,0.15);
+            padding: 25px; border-radius: 24px; width: 85%; max-width: 350px; text-align: center;
+            max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .modal-content::-webkit-scrollbar { width: 0; }
+        .modal-content h3 { margin-bottom: 20px; font-size: 14px; color: white; letter-spacing: 1px; opacity: 0.8; }
+        .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .lang-option {
+            padding: 12px; background: rgba(255,255,255,0.05);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: white;
+            font-size: 12px; font-weight: 500; transition: 0.2s;
+        }
+        .lang-option.selected { border-color: var(--ios-blue); background: rgba(0, 122, 255, 0.2); box-shadow: 0 0 15px rgba(0, 122, 255, 0.2); }
+        .close-btn {
+            margin-top: 20px; padding: 12px 0; width: 100%; background: white; color: black;
+            border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .close-btn:active { background: #ddd; }
+    </style>
+</head>
+<body>
+
+    <div id="camera-wrap">
+        <video id="v" autoplay playsinline></video>
+        <canvas id="c"></canvas>
+    </div>
+
+    <!-- Main UI Overlays -->
+    <div class="top-ui">
+        <div id="temp-num" style="font-size: 14px; font-weight: 600; min-width: 55px;">24.0°C</div>
+        <div class="temp-fill-bg"><div id="temp-bar"></div></div>
+        <div id="ai-status" style="font-size: 9px; opacity: 0.6; font-weight: 700; letter-spacing: 0.5px;">LOADING AI...</div>
+    </div>
+
+    <div class="top-controls">
+        <div class="icon-btn" onclick="toggleSettings()">
+            <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"></path><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
+        </div>
+        <div class="icon-btn" id="torch-btn" onclick="toggleTorch()">
+            <svg viewBox="0 0 24 24"><path d="M14.5 2L9.5 12h5l-4 10 9-13h-5l4-7z"></path></svg>
+        </div>
+        <div class="icon-btn" onclick="switchCamera()">
+            <svg viewBox="0 0 24 24"><path d="M21 3v6h-6"></path><path d="M21 9l-4-4A9 9 0 003 12"></path><path d="M3 21v-6h6"></path><path d="M3 15l4 4A9 9 0 0021 12"></path></svg>
+        </div>
+    </div>
+
+    <div id="alert">SENSORY ANOMALY DETECTED</div>
+
+    <div id="box" class="entity-box">
+        <div class="label-container">
+            <span id="label-name" class="type-text">SCANNING...</span>
+            <span id="label-dist" class="dist-text">0.00m</span>
+        </div>
+    </div>
+
+    <div class="bottom-ui">
+        <div class="filter-row">
+            <button class="f-item active" onclick="changeF(this,'')">NORMAL</button>
+            <button class="f-item" onclick="changeF(this,'sepia(1) hue-rotate(90deg) brightness(1.2)')">NIGHT</button>
+            <button class="f-item" onclick="changeF(this,'invert(1) hue-rotate(180deg) saturate(2)')">THERMAL</button>
+        </div>
+        <div class="shutter-btn" onclick="toggleScan()">
+            <div class="shutter-inner"></div>
+        </div>
+    </div>
+
+    <div id="settings-modal">
+        <div class="modal-content">
+            <h3>VOICE AI LANGUAGE</h3>
+            <div class="lang-grid">
+                <div class="lang-option selected" onclick="setLang('id', this)">🇮🇩 Indonesia</div>
+                <div class="lang-option" onclick="setLang('en', this)">🇬🇧 English</div>
+                <div class="lang-option" onclick="setLang('ko', this)">🇰🇷 Korean</div>
+                <div class="lang-option" onclick="setLang('ja', this)">🇯🇵 Japanese</div>
+                <div class="lang-option" onclick="setLang('es', this)">🇪🇸 Spanish</div>
+                <div class="lang-option" onclick="setLang('pt', this)">🇵🇹 Portuguese</div>
+                <div class="lang-option" onclick="setLang('ar', this)">🇸🇦 Arabic</div>
+                <div class="lang-option" onclick="setLang('hi', this)">🇮🇳 Hindi</div>
+                <div class="lang-option" onclick="setLang('zh', this)">🇨🇳 Mandarin</div>
+            </div>
+            <button class="close-btn" onclick="toggleSettings()">Save & Close</button>
+        </div>
+    </div>
+
+    <script>
+        const v = document.getElementById('v');
+        const c = document.getElementById('c');
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        const box = document.getElementById('box');
+        const tempBar = document.getElementById('temp-bar');
+        const tempNum = document.getElementById('temp-num');
+        const alertMsg = document.getElementById('alert');
+        const torchBtn = document.getElementById('torch-btn');
+        const aiStatus = document.getElementById('ai-status');
+
+        let isScanning = false;
+        let isDetecting = false;
+        let aiModel = null;
+        let currentFacingMode = 'environment';
+        let stream = null;
+        let videoTrack = null;
+        let isTorchOn = false;
+
+        // Load TensorFlow COCO-SSD Model
+        cocoSsd.load().then(model => {
+            aiModel = model;
+            aiStatus.innerText = "SMART SENSOR READY";
+            aiStatus.style.color = "var(--system-green)";
+        });
+
+        // Voice AI Settings & Translations
+        let currentLang = 'id';
+        const ttsVoices = { 
+            'id': 'id-ID', 'en': 'en-US', 'ko': 'ko-KR', 'ja': 'ja-JP', 'es': 'es-ES',
+            'pt': 'pt-BR', 'ar': 'ar-SA', 'hi': 'hi-IN', 'zh': 'zh-CN'
+        };
+        let lastSpokenType = null;
+        let lastSpeakTime = 0;
+
+        const translations = {
+            'id': { on: "Sensor diaktifkan", off: "Sensor dimatikan", human: "Manusia terdeteksi", animal: "Hewan terdeteksi", ghost: "Anomali tak kasat mata terdeteksi", object: "Objek terdeteksi: " },
+            'en': { on: "Sensor activated", off: "Sensor deactivated", human: "Human detected", animal: "Animal detected", ghost: "Anomalous entity detected", object: "Object detected: " },
+            'ko': { on: "센서 활성화", off: "센서 비활성화", human: "사람 감지됨", animal: "동물 감지됨", ghost: "미확인 개체 감지됨", object: "사물 감지됨: " },
+            'ja': { on: "センサー起動", off: "センサー停止", human: "人間を検知", animal: "動物を検知", ghost: "未知のエンティティを検知", object: "オブジェクト検知: " },
+            'es': { on: "Sensor activado", off: "Sensor desactivado", human: "Humano detectado", animal: "Animal detectado", ghost: "Entidad anómala detectada", object: "Objeto detectado: " },
+            'pt': { on: "Sensor ativado", off: "Sensor desativado", human: "Humano detectado", animal: "Animal detectado", ghost: "Entidade anômala detectada", object: "Objeto detectado: " },
+            'ar': { on: "تم تنشيط المستشعر", off: "تم إيقاف المستشعر", human: "تم اكتشاف إنسان", animal: "تم اكتشاف حيوان", ghost: "تم اكتشاف كيان غير مرئي", object: "تم اكتشاف كائن: " },
+            'hi': { on: "सेंसर सक्रिय", off: "सेंसर निष्क्रिय", human: "इंसान का पता चला", animal: "जानवर का पता चला", ghost: "अदृश्य इकाई का पता चला", object: "वस्तु का पता चला: " },
+            'zh': { on: "传感器已激活", off: "传感器已停用", human: "检测到人类", animal: "检测到动物", ghost: "检测到异常实体", object: "检测到物体: " }
+        };
+
+        // Dictionary to map COCO-SSD classes to our UI
+        function parseEntity(className) {
+            const animals = ['bird','cat','dog','horse','sheep','cow','elephant','bear','zebra','giraffe'];
+            if (className === 'person') return { type: 'human', label: 'BIOLOGICAL: HUMAN', color: 'var(--ios-blue)' };
+            if (animals.includes(className)) return { type: 'animal', label: 'BIOLOGICAL: ANIMAL', color: 'var(--system-yellow)' };
+            
+            // For objects (Buku, TV, HP, dll)
+            const objMap = {
+                'cell phone': 'SMARTPHONE', 'tv': 'TELEVISION', 'laptop': 'LAPTOP', 'book': 'BOOK',
+                'bottle': 'BOTTLE', 'chair': 'CHAIR', 'bed': 'BED', 'dining table': 'TABLE',
+                'cup': 'CUP', 'car': 'CAR', 'motorcycle': 'MOTORCYCLE', 'clock': 'CLOCK',
+                'refrigerator': 'REFRIGERATOR', 'potted plant': 'PLANT'
+            };
+            return { type: 'object', name: objMap[className] || className.toUpperCase(), label: `OBJECT: ${objMap[className] || className.toUpperCase()}`, color: 'var(--system-green)' };
+        }
+
+        function speakAI(type, objName = "") {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); 
+                let text = translations[currentLang][type];
+                if (type === 'object') text += objName; // Append object name dynamically
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = ttsVoices[currentLang];
+                utterance.rate = 1.0;
+                utterance.pitch = 1.1; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Camera Logic
+        async function startCamera() {
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            isTorchOn = false;
+            torchBtn.classList.remove('active-torch');
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+                });
+                v.srcObject = stream;
+                videoTrack = stream.getVideoTracks()[0];
+            } catch (err) {
+                console.error("Camera error:", err);
+            }
+        }
+        startCamera();
+
+        function switchCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            v.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+            startCamera();
+        }
+
+        async function toggleTorch() {
+            if (!videoTrack) return;
+            try {
+                const capabilities = videoTrack.getCapabilities();
+                if (capabilities.torch) {
+                    isTorchOn = !isTorchOn;
+                    await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+                    torchBtn.classList.toggle('active-torch', isTorchOn);
+                }
+            } catch (err) {}
+        }
+
+        // Settings Logic
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+        function setLang(langCode, element) {
+            currentLang = langCode;
+            document.querySelectorAll('.lang-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        // Audio Beep Setup
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(f, d, g=0.05) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const o = audioCtx.createOscillator();
+            const gn = audioCtx.createGain();
+            o.connect(gn); gn.connect(audioCtx.destination);
+            o.frequency.value = f; gn.gain.value = g;
+            o.start(); o.stop(audioCtx.currentTime + d);
+        }
+
+        function toggleScan() {
+            if(!aiModel) { alert("Sistem AI sedang memuat, tunggu sebentar."); return; }
+            
+            isScanning = !isScanning;
+            document.querySelector('.shutter-btn').classList.toggle('scanning');
+            
+            if(!isScanning) {
+                box.style.display = 'none';
+                resetUI();
+                speakAI('off');
+            } else {
+                speakAI('on');
+                analyzeFrame(); // Start AI Loop
+            }
+        }
+
+        // SMART AI DETECTION LOOP
+        async function analyzeFrame() {
+            if(!isScanning) return;
+            if(isDetecting) {
+                setTimeout(analyzeFrame, 50); return;
+            }
+
+            isDetecting = true;
+
+            // 1. Check Environmental Brightness (For Ghost Spawn Logic)
+            c.width = 64; c.height = 64;
+            ctx.drawImage(v, 0, 0, 64, 64);
+            const frame = ctx.getImageData(0,0,64,64).data;
+            let lumaSum = 0;
+            for(let i=0; i<frame.length; i+=4) {
+                lumaSum += (frame[i]*0.299 + frame[i+1]*0.587 + frame[i+2]*0.114);
+            }
+            let avgLuma = lumaSum / (64*64); // Average brightness (0-255)
+            
+            // In dark or flat environments, anomalies are more likely to appear
+            let ghostChance = avgLuma < 60 ? 0.05 : 0.01; 
+
+            // 2. Real Object Detection using TensorFlow
+            const predictions = await aiModel.detect(v);
+
+            if (predictions.length > 0) {
+                // Get most confident object
+                const target = predictions.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+                if (target.score > 0.5) {
+                    drawBox(target.bbox, parseEntity(target.class));
+                } else {
+                    hideBox();
+                }
+            } else {
+                // 3. Spooky Anomaly Simulation (Randomly triggered if no real objects found)
+                if (Math.random() < ghostChance) {
+                    const ghostBox = [
+                        Math.random() * (v.videoWidth - 150), 
+                        Math.random() * (v.videoHeight - 150), 
+                        100 + Math.random() * 150, 
+                        150 + Math.random() * 200
+                    ];
+                    drawBox(ghostBox, { type: 'ghost', label: 'ENTITY: UNKNOWN', color: 'var(--ghost-red)' });
+                } else {
+                    hideBox();
+                }
+            }
+
+            isDetecting = false;
+            // Cap to ~6-10 FPS for ML performance optimization
+            setTimeout(analyzeFrame, 150);
+        }
+
+        function drawBox(bbox, entityData) {
+            box.style.display = 'block';
+            
+            // Mapping video coordinates to screen coordinates based on object-fit: cover
+            const scaleX = window.innerWidth / v.videoWidth;
+            const scaleY = window.innerHeight / v.videoHeight;
+            const scale = Math.max(scaleX, scaleY);
+            
+            const offsetX = (window.innerWidth - (v.videoWidth * scale)) / 2;
+            const offsetY = (window.innerHeight - (v.videoHeight * scale)) / 2;
+
+            const x = (bbox[0] * scale) + offsetX;
+            const y = (bbox[1] * scale) + offsetY;
+            const width = bbox[2] * scale;
+            const height = bbox[3] * scale;
+            
+            box.style.left = x + 'px';
+            box.style.top = y + 'px';
+            box.style.width = width + 'px';
+            box.style.height = height + 'px';
+            
+            // Update UI
+            document.getElementById('label-name').innerText = entityData.label;
+            document.getElementById('label-name').style.color = entityData.color;
+            box.style.borderColor = entityData.color;
+            document.querySelector('.label-container').style.borderLeftColor = entityData.color;
+            
+            const distCalc = (2000 / width).toFixed(2);
+            document.getElementById('label-dist').innerText = "DIST: " + distCalc + "m";
+
+            // Trigger Specific UI Changes
+            if(entityData.type === 'ghost') {
+                triggerGhostUI();
+                playBeep(250, 0.2, 0.1);
+            } else {
+                resetUI();
+                playBeep(800, 0.1, 0.05);
+            }
+
+            // Voice AI TTS (Cooldown 4s)
+            const now = Date.now();
+            if (now - lastSpeakTime > 4000 || lastSpokenType !== entityData.type) {
+                speakAI(entityData.type, entityData.name || "");
+                lastSpokenType = entityData.type;
+                lastSpeakTime = now;
+            }
+        }
+
+        function hideBox() {
+            box.style.display = 'none';
+            resetUI();
+        }
+
+        function triggerGhostUI() {
+            alertMsg.style.display = 'block';
+            tempNum.innerText = "14.2°C";
+            tempNum.style.color = "var(--ghost-red)";
+            tempBar.style.width = "95%";
+            tempBar.style.background = "var(--ghost-red)";
+        }
+
+        function resetUI() {
+            alertMsg.style.display = 'none';
+            tempNum.innerText = "24.5°C";
+            tempNum.style.color = "white";
+            tempBar.style.width = "20%";
+            tempBar.style.background = "var(--system-green)";
+        }
+
+        function changeF(btn, f) {
+            document.querySelectorAll('.f-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            v.style.filter = f;
+        }
+    </script>
+</body>
+</html>
