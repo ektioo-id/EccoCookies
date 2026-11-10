@@ -50,13 +50,7 @@ main{max-width:1100px;margin:0 auto;padding:0 12px 120px}
 .hero h1{font-family:Fraunces,serif;font-weight:700;font-size:clamp(1.9rem,5vw,3rem);line-height:1.08;letter-spacing:-.02em}
 .hero p{margin-top:8px;font-size:1rem;color:var(--ink2);line-height:1.5}
 .row{display:flex;gap:10px;flex-wrap:wrap}
-.ic{width:1.2em;height:1.2em;flex:none}
-.perks{margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-.perks div{padding:16px 18px;border-radius:22px;font-weight:500;line-height:1.4;display:flex;gap:12px;align-items:flex-start}
-.perks b{display:block;font-family:Fraunces,serif;font-size:1.05rem}
-.perks span{color:var(--ink2);font-size:.9rem}
-.qty{display:flex;align-items:center;gap:10px;margin-top:14px;color:var(--ink2)}
-.qty input{width:72px;border-radius:14px;border:1px solid var(--glass-b);padding:8px 10px;font:inherit;color:var(--ink);background:var(--glass)}
+.ic{width:1.2em;height:1.2em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 footer .ic{vertical-align:-.2em;margin-right:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
 .card{border-radius:28px;overflow:hidden;display:flex;flex-direction:column;transition:transform .3s}
@@ -94,34 +88,88 @@ footer a{color:var(--ink)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:520px){.logo{font-size:1.05rem}.hdr .btn{padding:10px 13px;font-size:.85rem}.lbl{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.hl{display:flex;align-items:center;gap:12px;min-width:0}
+.ord{padding:9px 12px 9px 14px}
+.cnt{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:inline-grid;place-items:center;font-size:.78rem;background:var(--glass-b);color:var(--ink)}
+.ord.has .cnt{background:var(--accent);color:var(--accent-ink)}
+.bub{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;flex:none;background:var(--glass);border:1px solid var(--glass-b);box-shadow:inset 0 1.5px 0 #ffffff70;color:var(--accent)}
+.bub .ic{width:22px;height:22px}
+.hero{padding:clamp(24px,5vw,44px) 4px 20px;max-width:760px}
+.perks{margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.pk{padding:16px 18px;border-radius:22px;display:flex;gap:12px;align-items:flex-start}
+.pk>.ic{width:22px;height:22px;margin-top:2px;color:var(--accent)}
+.pk b{display:block;font-family:Fraunces,serif;font-size:1rem;margin-bottom:3px}
+.pk span{color:var(--ink2);font-size:.9rem;line-height:1.5}
+.pk.wide{grid-column:1/-1;display:block}
+.pk.wide b{margin-bottom:10px}
+.ing{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:0}
+.ing li{list-style:none;padding:7px 14px;border-radius:999px;font-weight:500;font-size:.9rem;border:1px solid var(--glass-b);background:#ffffff1f}
+.box{width:min(460px,100%);max-height:88vh;overflow:auto;border-radius:32px;padding:22px}
+.bh{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.bh h2{font-family:Fraunces,serif;font-size:1.4rem;line-height:1.1;margin:0}
+.bh small{color:var(--ink2)}
+.bx{margin-left:auto;width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-b);background:var(--glass);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.ol{list-style:none;padding:0!important;margin:0!important;display:grid;gap:10px}
+.oi{display:flex;gap:12px;align-items:center;padding:10px;border-radius:20px;background:#ffffff26;border:1px solid var(--glass-b)}
+.th{width:56px;height:56px;border-radius:14px;overflow:hidden;flex:none;background:var(--glass)}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.nm{font-weight:700;line-height:1.25;color:var(--ink)}
+.mt{font-size:.8rem;color:var(--ink2);margin-top:2px}
+.q{margin-left:auto;padding:5px 11px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.82rem}
+.sum{display:flex;justify-content:space-between;gap:10px;margin-top:14px;padding:14px 16px;border-radius:18px;background:#ffffff26;font-weight:700;color:var(--ink)}
+.note{color:var(--ink2);font-size:.85rem;line-height:1.5;margin-top:14px}
+.empty{text-align:center;padding:10px 6px;color:var(--ink2)}
+.empty .bub{margin:0 auto 12px;width:64px;height:64px;border-radius:22px}
+.foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.lnk{margin-left:auto;background:none;border:0;color:var(--ink2);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer}
+.qrow{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-weight:700;color:var(--ink)}
+.step{display:inline-flex;align-items:center;gap:8px}
+.step button{width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-b);background:var(--glass);color:var(--ink);font:700 1.2rem 'DM Sans',sans-serif;cursor:pointer}
+.step output{min-width:30px;text-align:center;font-weight:700;font-size:1.1rem}
+@media (max-width:520px){header .btn{padding:10px 13px;font-size:.85rem}}
+@media (max-width:420px){.olbl{display:none}.hl{gap:8px}}
+.hdr{display:flex;gap:6px}
+.made{font-weight:700;color:var(--ink);margin-bottom:4px}
+.lead{border-radius:28px;padding:clamp(20px,4vw,30px)}
+.hero{max-width:none}
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/><path fill="currentColor" d="M9 8.3c.3 2.4 2.3 4.4 4.7 4.7l1.3-1.3-1.7-1.1-.9.7a3.2 3.2 0 0 1-1.8-1.8l.7-.9-1.1-1.7z"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/><path fill="currentColor" stroke="none" d="M9 8.3c.3 2.4 2.3 4.4 4.7 4.7l1.3-1.3-1.7-1.1-.9.7a3.2 3.2 0 0 1-1.8-1.8l.7-.9-1.1-1.7z"/></symbol>
   <symbol id="i-ig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.4A4 4 0 1 1 12.6 8 4 4 0 0 1 16 11.4z"/><path d="M17.5 6.5h.01"/></g></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m22 4-10 10-3-3"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m16.5 9.4-9-5.2"/><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
 </svg>
 <div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <header class="glass">
-  <a class="logo" href="#" id="brand">🎄</a>
+  <a class="logo" href="#" id="brand">ECCO COOKIES</a>
   <div class="hdr">
-    <button class="btn ghost" id="myOrders">Pesanan Saya<span id="cnt">0</span></button>
+    <button class="btn ghost ord" id="myOrders" aria-label="Pesanan saya"><svg class="ic"><use href="#i-bag"/></svg><span class="olbl">Pesanan Saya</span><span class="cnt" id="cnt">0</span></button>
     <a class="btn ghost" id="igTop" href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ic"><use href="#i-ig"/></svg><span class="lbl">Instagram</span></a>
-    <a class="btn" id="waTop" href="#" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="ic"><use href="#i-wa"/></svg><span class="lbl">WhatsApp</span></a>
   </div>
 </header>
 
 <main>
   <section class="hero">
-    <h1>Ecco Cookies</h1>
-   
-   
-   
-   
-    <p>Kue kacang homemade, kue kacang 100% tanpa pengawet & 100% Halal.</p>
-    <p>Tersedia variant 250g hingga 500g. </p>    <p>P-IRT : 2053302012242-31</p>
+    <div class="lead glass">
+      <h1>Kue kacang homemade</h1>
+      <p>100% tanpa pengawet, 100% halal. Tersedia varian 250g hingga 500g. </p>
+      <p>P-IRT: 2053302012242-31</p>
+    </div>
   </section>
+  
+  <br>
+  <br>
 
   <section id="produk" aria-label="Daftar produk"><div class="grid" id="grid"></div></section>
 
@@ -134,25 +182,26 @@ footer a{color:var(--ink)}
       <li>Pantau resi dan status kiriman di aplikasi Shopee.</li>
     </ol>
   </section>
-  <section class="perks" aria-label="Info belanja">
-     
-     
-     <div class="glass"><p><b>Komposisi</b><span>Kacang tanah, telur, gula, garam, minyak goreng.</span></p></div>
-     
-     <br>
-    <div class="glass"><p><b>Banyak Promo Diskon</b><span>Nikmati berbagai penawaran menarik dan potongan harga spesial di shopee.</span></p></div>
-    <div class="glass"><p><b>Bisa kirim seluruh indonesia</b><span>Berlaku untuk semua produk kue kacang.</span></p></div>
-    <div class="glass"><p><b>Dibayar aman lewat Shopee</b><span>Mendukung QRIS, e-wallet, transfer bank, hingga COD dengan sistem transaksi terpercaya.</span></p></div>
-    <div class="glass"><p><b>Ongkir lebih murah</b><span>Biaya pengiriman dihitung secara akurat di shopee.</span></p></div>
-    <div class="glass"><p><b>Dikemas anti remuk</b><span>Packing Aman & Rapi Menggunakan lapisan pelindung ekstra agar produk tetap utuh sampai di tujuan.</span></p></div>
-    
+  <section class="perks" aria-label="Info produk dan belanja">
+    <div class="pk wide glass"><b>Komposisi</b>
+      <ul class="ing"><li>Kacang tanah</li><li>Telur</li><li>Gula</li><li>Garam</li><li>Minyak goreng</li></ul></div>
+    <div class="pk glass"><svg class="ic"><use href="#i-tag"/></svg><p><b>Banyak Promo Diskon</b><span>Nikmati berbagai penawaran menarik dan potongan harga spesial di Shopee.</span></p></div>
+    <div class="pk glass"><svg class="ic"><use href="#i-globe"/></svg><p><b>Bisa kirim seluruh Indonesia</b><span>Berlaku untuk semua produk kue kacang.</span></p></div>
+    <div class="pk glass"><svg class="ic"><use href="#i-lock"/></svg><p><b>Dibayar aman lewat Shopee</b><span>Mendukung QRIS, e-wallet, transfer bank, hingga COD dengan sistem transaksi terpercaya.</span></p></div>
+    <div class="pk glass"><svg class="ic"><use href="#i-truck"/></svg><p><b>Ongkir lebih murah</b><span>Biaya pengiriman dihitung secara akurat di Shopee.</span></p></div>
+    <div class="pk glass"><svg class="ic"><use href="#i-shield"/></svg><p><b>Dikemas anti remuk</b><span>Packing aman dan rapi, memakai lapisan pelindung ekstra agar produk tetap utuh sampai di tujuan.</span></p></div>
   </section>
 </main>
 
 <footer>
+    
+    <p>Diproduksi oleh ECCO Bakery, </p>
+    <p>Banyumas, Jawa Tengah, Indonesia</p>
+  
   <svg class="ic"><use href="#i-ig"/></svg><a id="igFoot" href="#" target="_blank" rel="noopener"></a> &nbsp;&nbsp;
   <svg class="ic"><use href="#i-wa"/></svg><a id="waFoot" href="#" target="_blank" rel="noopener"></a><br>
-  © <span id="yr"></span> Ecco Cookies. Pembayaran diproses oleh Shopee.
+ 
+  © <span id="yr"></span> Ecco Cookies Page. 
 </footer>
 <a class="btn wa" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Chat WhatsApp"><svg class="ic"><use href="#i-wa"/></svg>Chat WhatsApp</a>
 
@@ -183,7 +232,7 @@ const rp = n => "Rp " + Math.round(n).toLocaleString("id-ID");
 const disc = p => p.price * (100 - STORE.discount) / 100;
 const waLink = "https://wa.me/" + STORE.whatsapp + "?text=" + encodeURIComponent("Halo Ecco Cookies, saya mau tanya produk kue kering.");
 const igLink = "https://instagram.com/" + STORE.instagram;
-["#waTop","#waFloat"].forEach(s => $(s).href = waLink);
+$("#waFloat").href = waLink;
 $("#waFoot").href = waLink; $("#waFoot").textContent = STORE.waShow;
 ["#igTop","#igFoot"].forEach(s => $(s).href = igLink);
 $("#igFoot").textContent = "@" + STORE.instagram;
@@ -226,11 +275,12 @@ function render(){
     im.onload = () => { el.querySelector(".ph").prepend(im); requestAnimationFrame(() => im.classList.add("on")); };
     im.src = p.foto;
   });
-  $("#cnt").textContent = orders.length;
+  $("#cnt").textContent = orders.length; $("#myOrders").classList.toggle("has", orders.length > 0);
 }
 
 /* ---------- Info: sudah memesan ---------- */
-function openBox(html){ $("#box").innerHTML = html; $("#ov").classList.add("show"); const f = $("#box button"); f && f.focus(); }
+function openBox(html){ $("#box").innerHTML = html; $("#ov").classList.add("show"); const f = $("#box .btn") || $("#box button"); f && f.focus(); }
+const CLOSE = '<button class="bx" id="bx" aria-label="Tutup"><svg class="ic"><use href="#i-x"/></svg></button>';
 function closeBox(){ $("#ov").classList.remove("show"); }
 $("#ov").addEventListener("click", e => { if (e.target.id === "ov") closeBox(); });
 addEventListener("keydown", e => { if (e.key === "Escape") closeBox(); });
@@ -239,28 +289,51 @@ function askPending(){
   const p = get(K_PEND, null);
   if (!p || Date.now() - p.t < 4000) return;      // tunggu sampai pembeli benar-benar kembali dari tab Shopee
   const prod = PRODUCTS.find(x => x.name === p.name); if (!prod) return;
-  const max = Math.max(1, stockLeft(prod));
-  openBox(`<h2></h2><p>Kamu tadi membuka halaman Shopee untuk produk ini. Kalau pembayaran sudah selesai, catat sebagai pesananmu.</p>
-    <label class="qty">Jumlah dipesan <input id="qty" type="number" min="1" max="${max}" value="1" inputmode="numeric"></label>
-    <div class="row"><button class="btn" id="yes">Ya, sudah memesan</button><button class="btn ghost" id="no">Belum</button></div>`);
-  $("#box h2").textContent = "Sudah memesan " + p.name + "?";
+  const left = stockLeft(prod), max = Math.max(1, left); let q = 1;
+  openBox(`<div class="bh"><span class="bub"><svg class="ic"><use href="#i-bag"/></svg></span><div><h2>Sudah memesan?</h2><small>Catat pesananmu di sini</small></div>${CLOSE}</div>
+    <div class="oi"><div class="th"><img alt="" src="${prod.foto}" onerror="this.remove()"></div><div><div class="nm"></div><div class="mt">Stok tersisa ${left} ${prod.unit}</div></div></div>
+    <div class="qrow"><span>Jumlah dipesan</span><div class="step"><button id="mn" aria-label="Kurangi">−</button><output id="qv">1</output><button id="pl" aria-label="Tambah">+</button></div></div>
+    <p class="note">Kamu tadi membuka Shopee. Kalau pembayaran sudah selesai, catat sebagai pesananmu.</p>
+    <div class="foot"><button class="btn" id="yes">Ya, sudah memesan</button><button class="btn ghost" id="no">Belum</button></div>`);
+  $("#box .nm").textContent = p.name;
+  $("#mn").onclick = () => { q = Math.max(1, q - 1); $("#qv").textContent = q; };
+  $("#pl").onclick = () => { q = Math.min(max, q + 1); $("#qv").textContent = q; };
+  $("#bx").onclick = closeBox;
   $("#yes").onclick = () => {
-    const qty = Math.min(max, Math.max(1, parseInt($("#qty").value) || 1));
-    orders.unshift({name:p.name, qty, t:Date.now()}); set(K_ORD, orders); localStorage.removeItem(K_PEND);
-    closeBox(); render(); toast("Kamu sudah memesan " + qty + " " + p.name + ". Stok diperbarui.");
+    orders.unshift({name:p.name, qty:q, t:Date.now()}); set(K_ORD, orders); localStorage.removeItem(K_PEND);
+    closeBox(); render(); toast("Kamu sudah memesan " + q + " " + p.name + ". Stok diperbarui.");
   };
   $("#no").onclick = () => { localStorage.removeItem(K_PEND); closeBox(); };
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) askPending(); });
 addEventListener("focus", askPending);
 
-$("#myOrders").onclick = () => {
-  const list = orders.map(o => `<li><b></b> <span>${new Date(o.t).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"})}</span></li>`).join("");
-  openBox(`<h2>Pesanan saya</h2>${orders.length ? `<ul>${list}</ul><p style="margin-top:12px;font-size:.88rem">Status pengiriman dan resi ada di aplikasi Shopee.</p>` : "<p>Belum ada pesanan. Pilih kue favoritmu, lalu tekan Beli di Shopee.</p>"}
-    <div class="row"><button class="btn" id="cl">Tutup</button></div>`);
-  $("#box").querySelectorAll("li b").forEach((b, i) => b.textContent = orders[i].name + " ×" + (orders[i].qty || 1));
-  $("#cl").onclick = closeBox;
-};
+function showOrders(){
+  const tot = orders.reduce((a, o) => a + (o.qty || 1), 0);
+  const sum = orders.reduce((a, o) => { const p = PRODUCTS.find(x => x.name === o.name); return a + (p ? disc(p) * (o.qty || 1) : 0); }, 0);
+  const head = `<div class="bh"><span class="bub"><svg class="ic"><use href="#i-bag"/></svg></span><div><h2>Pesanan Saya</h2><small>${orders.length ? orders.length + " pesanan tercatat" : "Belum ada pesanan"}</small></div>${CLOSE}</div>`;
+  if (!orders.length) {
+    openBox(head + `<div class="empty"><span class="bub"><svg class="ic"><use href="#i-bag"/></svg></span><p>Pilih kue favoritmu, lalu tekan Beli di Shopee. Pesananmu akan tercatat di sini.</p></div>
+      <div class="foot"><button class="btn" id="cl">Lihat produk</button></div>`);
+    $("#cl").onclick = () => { closeBox(); $("#produk").scrollIntoView({behavior:"smooth"}); };
+  } else {
+    const item = o => { const p = PRODUCTS.find(x => x.name === o.name); return `<li class="oi"><div class="th">${p ? `<img alt="" src="${p.foto}" onerror="this.remove()">` : ""}</div><div><div class="nm"></div><div class="mt"></div></div><span class="q"></span></li>`; };
+    openBox(head + `<ul class="ol">${orders.map(item).join("")}</ul>
+      <div class="sum"><span>${tot} item · estimasi total</span><span>${rp(sum)}</span></div>
+      <p class="note">Riwayat ini hanya tersimpan di perangkatmu. Status pengiriman dan resi ada di Shopee.</p>
+      <div class="foot"><a class="btn" href="https://shopee.co.id/user/purchase" target="_blank" rel="noopener">Cek status di Shopee</a><button class="btn ghost" id="cl">Tutup</button><button class="lnk" id="clr">Hapus riwayat</button></div>`);
+    $("#box").querySelectorAll(".oi").forEach((li, i) => {
+      const o = orders[i], p = PRODUCTS.find(x => x.name === o.name);
+      li.querySelector(".nm").textContent = o.name;
+      li.querySelector(".mt").textContent = new Date(o.t).toLocaleString("id-ID", {dateStyle:"medium", timeStyle:"short"}) + (p ? " · " + rp(disc(p) * (o.qty || 1)) : "");
+      li.querySelector(".q").textContent = "×" + (o.qty || 1);
+    });
+    $("#cl").onclick = closeBox;
+    $("#clr").onclick = () => { if (confirm("Hapus semua riwayat pesanan di perangkat ini? Angka stok yang tampil juga ikut kembali.")) { orders = []; set(K_ORD, orders); closeBox(); render(); } };
+  }
+  $("#bx").onclick = closeBox;
+}
+$("#myOrders").onclick = showOrders;
 render();
 
 /* ---------- Background adaptif: jam, mode gelap, pointer ---------- */
