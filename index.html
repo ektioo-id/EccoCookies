@@ -144,6 +144,30 @@ footer a{color:var(--ink)}
 @keyframes mq{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq{overflow-x:auto}}
 .pk.full{grid-column:1/-1}
+.rev{margin-top:28px;border-radius:32px;padding:clamp(22px,4vw,40px)}
+.rev h2{font-family:Fraunces,serif;font-size:1.8rem;margin-bottom:4px}
+.rev>small{display:block;color:var(--ink2);margin-bottom:18px}
+.rvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.rv{padding:16px;border-radius:20px;background:#ffffff26;border:1px solid var(--glass-b);display:flex;flex-direction:column;gap:8px}
+.rv .st{color:#f5a623;letter-spacing:2px;font-size:1.05rem}
+.rv p{line-height:1.55;color:var(--ink)}
+.rv .k{color:var(--ink2)}
+.rv .who{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;color:var(--ink2)}
+.rv .re{margin-top:auto;padding:9px 12px;border-radius:12px;background:#ffffff1f;font-size:.85rem;color:var(--ink2)}
+.rev{margin-top:44px}
+.rev h2{font-family:Fraunces,serif;font-size:1.6rem}
+.rev .sub{color:var(--ink2);margin:4px 0 16px;font-size:.92rem}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rv{border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.rh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stars{display:inline-flex;gap:2px;color:#f4b400}
+.stars .ic{width:16px;height:16px;fill:currentColor}
+.rv p{color:var(--ink);line-height:1.55;font-size:.95rem}
+.rv .lb{color:var(--ink2)}
+.rv time{color:var(--ink2);font-size:.8rem;margin-top:auto}
+.rp{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-top:4px}
+.rp.one{max-width:50%}
+.rp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block}
 </style>
 </head>
 <body>
@@ -160,6 +184,7 @@ footer a{color:var(--ink)}
   <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></symbol>
 </svg>
 <div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
 
@@ -175,7 +200,8 @@ footer a{color:var(--ink)}
   <section class="hero">
     <div class="lead glass">
       <h1>Kue kacang homemade</h1>
-      <p>100% tanpa pengawet, 100% halal. Tersedia varian 250g hingga 500g. </p>
+      <p> Kue Kacang Homemade Spesial dan kualitas Premium, cocok untuk hidangan keluarga, 100% Original tanpa bahan pengawet & halal, Tersedia varian 250g hingga 500g, Rasanya dijamin enak, nagih banget dan renyah dimulut.
+ </p>
     </div>
   </section>
 
@@ -195,6 +221,32 @@ footer a{color:var(--ink)}
       <li>Kembali ke web ini, lalu konfirmasi bahwa kamu sudah memesan. Pesananmu tercatat di <b>Pesanan saya</b>.</li>
       <li>Pantau resi dan status kiriman di aplikasi Shopee.</li>
     </ol>
+  </section>
+  
+    
+
+
+  <section class="rev glass" id="ulasan">
+    <h2>Ulasan pembeli</h2>
+    <small>Diambil dari ulasan asli di Shopee.</small>
+    <div class="rvs">
+      <article class="rv"><div class="st" role="img" aria-label="Bintang 5 dari 5">★★★★★</div>
+        <p>Proses pesanan dan pengiriman satset, packing aman rapi. Untuk rasa cocok dan masuk kok di saya, harga jg bersaing ga kalah lah sama seller yg dari kota2 besar. Pertahankan ya kualitas produk &amp; pelayanannya, semoga makin laris ke depannya!</p>
+        <div class="who"><span>o*****</span><span>26 Mar 2025</span></div>
+        
+      </article>
+      <article class="rv"><div class="st" role="img" aria-label="Bintang 5 dari 5">★★★★★</div>
+      
+      <p>MaannTaaaaap, kualitas bagus, oke ga rusak ga hancur.</p>
+        <div class="who"><span>a****</span><span>19 Mar 2026</span></div>
+        
+      </article>
+      <article class="rv"><div class="st" role="img" aria-label="Bintang 5 dari 5">★★★★★</div>
+        <p>Enaak.. kacangnya kerasa kualitas oke lah</p>
+        <div class="who"><span>b****</span><span>15 Mar 2026</span></div>
+      
+      </article>
+    </div>
   </section>
   <section class="perks" aria-label="Info produk dan belanja">
     <div class="pk full glass"><svg class="ic"><use href="#i-shield"/></svg><p><b>Izin P-IRT</b><span>2053302012242-31</span></p></div>
