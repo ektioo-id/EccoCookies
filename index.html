@@ -143,6 +143,7 @@ footer a{color:var(--ink)}
 .promo .btn{padding:9px 16px;font-size:.85rem}
 @keyframes mq{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq{overflow-x:auto}}
+.pk.full{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -175,7 +176,6 @@ footer a{color:var(--ink)}
     <div class="lead glass">
       <h1>Kue kacang homemade</h1>
       <p>100% tanpa pengawet, 100% halal. Tersedia varian 250g hingga 500g. </p>
-      <p>P-IRT: 2053302012242-31</p>
     </div>
   </section>
 
@@ -197,6 +197,7 @@ footer a{color:var(--ink)}
     </ol>
   </section>
   <section class="perks" aria-label="Info produk dan belanja">
+    <div class="pk full glass"><svg class="ic"><use href="#i-shield"/></svg><p><b>Izin P-IRT</b><span>2053302012242-31</span></p></div>
     <div class="pk wide glass"><b>Komposisi</b>
       <ul class="ing"><li>Kacang tanah</li><li>Telur</li><li>Gula</li><li>Garam</li><li>Minyak goreng</li></ul></div>
     <div class="pk glass"><svg class="ic"><use href="#i-tag"/></svg><p><b>Banyak Promo Diskon</b><span>Nikmati berbagai penawaran menarik dan potongan harga spesial di Shopee.</span></p></div>
@@ -228,18 +229,17 @@ const STORE = {
   waShow: "0882-3853-3861",
   instagram: "eccokies_id",
   discount: 10,                  // persen, berlaku untuk semua produk
-  stockUpdated: "2026-11-10",    // dipakai hanya jika stockApi kosong (stok per browser)
-  stockApi: "",                  // URL Web App Google Apps Script untuk stok bersama (lihat stok-apps-script.gs)
+  promoDisc: 20,                 // "diskon sampai X%" di teks bergerak
   promoCode: "EKOTPAGES",
   promoEnd: "2027-01-23",        // promo otomatis hilang setelah tanggal ini
   promoMin: 19000
 };
-/* price = harga awal (sebelum diskon). stock = jumlah stok tersisa (ubah manual setiap stok berubah).
+/* price = harga awal (sebelum diskon). soldOut = true jika stok habis (tombol beli otomatis nonaktif).
    foto  = file jpg di folder foto/ pada repository. shopee = link produk di Shopee. */
 const PRODUCTS = [
-  {name:"Kue Kacang Kemasan Plastik 250g", price:20000, stock:25, unit:"kemasan", tag:"Terlaris", foto:"Shopee_1d71f69db527407d80075c09c31dd54a.jpg",
+  {name:"Kue Kacang Kemasan Plastik 250g", price:20000, soldOut:false, tag:"Terlaris", foto:"Shopee_1d71f69db527407d80075c09c31dd54a.jpg",
    desc:"Kue kacang renyah dan gurih dalam kemasan plastik praktis 250 gr.", shopee:"https://s.shopee.co.id/70LatKKtH5"},
-  {name:"Kue Kacang Kemasan Toples 500g", price:37000, stock:25, unit:"toples", foto:"sg-11134201-823rf-mpa7ubv3e51r2e.jpg",
+  {name:"Kue Kacang Kemasan Toples 500g", price:37000, soldOut:false, foto:"sg-11134201-823rf-mpa7ubv3e51r2e.jpg",
    desc:"Kue kacang renyah dan gurih dalam toples 500 gr, pas untuk suguhan dan hampers.", shopee:"https://s.shopee.co.id/4VeFvzfFO5"}
 ];
 /* ========================================= */
@@ -260,24 +260,6 @@ const K_ORD = "ecco-orders", K_PEND = "ecco-pending";
 const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 let orders = get(K_ORD, []);
-const STOCK_FROM = new Date(STORE.stockUpdated + "T00:00:00").getTime();
-let remote = {}, remoteJson = "";
-const stockLeft = p => {
-  if (STORE.stockApi && remote[p.name] !== undefined) return Math.max(0, remote[p.name]);
-  return Math.max(0, p.stock - orders.filter(o => o.name === p.name && o.t >= STOCK_FROM).reduce((a, o) => a + (o.qty || 1), 0));
-};
-async function loadStock(){
-  if (!STORE.stockApi) return;
-  try {
-    const j = await (await fetch(STORE.stockApi + (STORE.stockApi.includes("?") ? "&" : "?") + "t=" + Date.now())).json();
-    if (j.ok && JSON.stringify(j.stock) !== remoteJson) { remote = j.stock; remoteJson = JSON.stringify(j.stock); render(); }
-  } catch {}
-}
-async function sendOrder(name, qty){
-  if (!STORE.stockApi) return;
-  try { await fetch(STORE.stockApi, {method:"POST", mode:"no-cors", body:JSON.stringify({name, qty})}); } catch {}
-  await loadStock();
-}
 const ordered = n => orders.some(o => o.name === n);
 const toast = t => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 3200); };
 
@@ -285,12 +267,12 @@ const toast = t => { const e = $("#toast"); e.textContent = t; e.classList.add("
 function render(){
   const g = $("#grid"); g.innerHTML = "";
   PRODUCTS.forEach(p => {
-    const n = stockLeft(p), out = n <= 0, low = n > 0 && n <= 5;
+    const out = !!p.soldOut;
     const el = document.createElement("article"); el.className = "card glass";
     el.innerHTML = `<div class="ph">${p.tag ? `<span class="tag"></span>` : ""}${ordered(p.name) ? `<span class="done">Sudah dipesan</span>` : ""}
       <svg aria-hidden="true" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg></div>
       <div class="info"><h3></h3><p></p>
-      <span class="stock ${out ? "out" : low ? "low" : "ok"}">${out ? "Stok habis" : low ? "Sisa " + n + " " + p.unit + " lagi" : "Stok tersedia: " + n + " " + p.unit}</span>
+      <span class="stock ${out ? "out" : "ok"}">${out ? "Stok habis" : "Stok masih tersedia"}</span>
       <div class="buy"><div><span class="old">${rp(p.price)}</span><span class="price">${rp(disc(p))}</span></div>
       <a class="btn" target="_blank" rel="noopener"></a></div></div>`;
     if (p.tag) el.querySelector(".tag").textContent = p.tag;
@@ -322,9 +304,9 @@ function askPending(){
   const p = get(K_PEND, null);
   if (!p || Date.now() - p.t < 4000) return;      // tunggu sampai pembeli benar-benar kembali dari tab Shopee
   const prod = PRODUCTS.find(x => x.name === p.name); if (!prod) return;
-  const left = stockLeft(prod), max = Math.max(1, left); let q = 1;
+  const max = 20; let q = 1;
   openBox(`<div class="bh"><span class="bub"><svg class="ic"><use href="#i-bag"/></svg></span><div><h2>Sudah memesan?</h2><small>Catat pesananmu di sini</small></div>${CLOSE}</div>
-    <div class="oi"><div class="th"><img alt="" src="${prod.foto}" onerror="this.remove()"></div><div><div class="nm"></div><div class="mt">Stok tersisa ${left} ${prod.unit}</div></div></div>
+    <div class="oi"><div class="th"><img alt="" src="${prod.foto}" onerror="this.remove()"></div><div><div class="nm"></div><div class="mt">${rp(disc(prod))}</div></div></div>
     <div class="qrow"><span>Jumlah dipesan</span><div class="step"><button id="mn" aria-label="Kurangi">−</button><output id="qv">1</output><button id="pl" aria-label="Tambah">+</button></div></div>
     <p class="note">Kamu tadi membuka Shopee. Kalau pembayaran sudah selesai, catat sebagai pesananmu.</p>
     <div class="foot"><button class="btn" id="yes">Ya, sudah memesan</button><button class="btn ghost" id="no">Belum</button></div>`);
@@ -334,11 +316,11 @@ function askPending(){
   $("#bx").onclick = closeBox;
   $("#yes").onclick = () => {
     orders.unshift({name:p.name, qty:q, t:Date.now()}); set(K_ORD, orders); localStorage.removeItem(K_PEND);
-    closeBox(); render(); toast("Kamu sudah memesan " + q + " " + p.name + ". Stok diperbarui."); sendOrder(p.name, q);
+    closeBox(); render(); toast("Kamu sudah memesan " + q + " " + p.name + ". Cek status di Shopee.");
   };
   $("#no").onclick = () => { localStorage.removeItem(K_PEND); closeBox(); };
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden) { askPending(); loadStock(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) askPending(); });
 addEventListener("focus", askPending);
 
 function showOrders(){
@@ -367,14 +349,14 @@ function showOrders(){
   $("#bx").onclick = closeBox;
 }
 $("#myOrders").onclick = showOrders;
-render(); loadStock(); setInterval(loadStock, 60000);
+render();
 
 /* ---------- Promo spesial ---------- */
 (() => {
   const P = $("#promo"), end = new Date(STORE.promoEnd + "T23:59:59+07:00");
   if (Date.now() > end) { P.hidden = true; return; }
   const tgl = end.toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric", timeZone:"Asia/Jakarta"});
-  const html = `Promo spesial menyambut 2027 · Kode promo <b>${STORE.promoCode}</b> · Berlaku hingga ${tgl} · Diskon hingga 20% · Bisa diklaim saat checkout di Shopee · Minimal pembelian ${rp(STORE.promoMin)}`;
+  const html = `Promo spesial menyambut 2027 · Diskon sampai ${STORE.promoDisc}% · Kode promo <b>${STORE.promoCode}</b> · Berlaku hingga ${tgl} · Bisa diklaim saat checkout di Shopee · Minimal pembelian ${rp(STORE.promoMin)}`;
   P.querySelectorAll(".mq-in span").forEach(x => x.innerHTML = html);
   $("#copyCode").onclick = async () => {
     try { await navigator.clipboard.writeText(STORE.promoCode); } catch {}
