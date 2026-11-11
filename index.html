@@ -132,6 +132,17 @@ footer a{color:var(--ink)}
 .made{font-weight:700;color:var(--ink);margin-bottom:4px}
 .lead{border-radius:28px;padding:clamp(20px,4vw,30px)}
 .hero{max-width:none}
+.promo{display:flex;align-items:center;gap:12px;margin:20px 0 28px;padding:10px 12px 10px 18px;border-radius:22px}
+.promo[hidden]{display:none}
+.promo>.ic{color:var(--accent);width:22px;height:22px}
+.mq{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.mq-in{display:flex;width:max-content;animation:mq 30s linear infinite}
+.mq-in span{white-space:nowrap;padding-right:56px;font-weight:500}
+.mq-in b{color:var(--accent);letter-spacing:.04em}
+.promo:hover .mq-in{animation-play-state:paused}
+.promo .btn{padding:9px 16px;font-size:.85rem}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mq{overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -167,9 +178,12 @@ footer a{color:var(--ink)}
       <p>P-IRT: 2053302012242-31</p>
     </div>
   </section>
-  
-  <br>
-  <br>
+
+  <div class="promo glass" id="promo" role="region" aria-label="Promo spesial">
+    <svg class="ic"><use href="#i-tag"/></svg>
+    <div class="mq"><div class="mq-in"><span></span><span aria-hidden="true"></span></div></div>
+    <button class="btn" id="copyCode">Salin kode</button>
+  </div>
 
   <section id="produk" aria-label="Daftar produk"><div class="grid" id="grid"></div></section>
 
@@ -194,14 +208,13 @@ footer a{color:var(--ink)}
 </main>
 
 <footer>
-    
     <p>Diproduksi oleh ECCO Bakery, </p>
     <p>Banyumas, Jawa Tengah, Indonesia</p>
-  
+
   <svg class="ic"><use href="#i-ig"/></svg><a id="igFoot" href="#" target="_blank" rel="noopener"></a> &nbsp;&nbsp;
   <svg class="ic"><use href="#i-wa"/></svg><a id="waFoot" href="#" target="_blank" rel="noopener"></a><br>
- 
-  © <span id="yr"></span> Ecco Cookies Page. 
+
+  © <span id="yr"></span> Ecco Cookies Page.
 </footer>
 <a class="btn wa" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Chat WhatsApp"><svg class="ic"><use href="#i-wa"/></svg>Chat WhatsApp</a>
 
@@ -215,7 +228,11 @@ const STORE = {
   waShow: "0882-3853-3861",
   instagram: "eccokies_id",
   discount: 10,                  // persen, berlaku untuk semua produk
-  stockUpdated: "2026-11-10"     // ubah ke tanggal hari ini setiap kamu mengubah angka stok di bawah
+  stockUpdated: "2026-11-10",    // dipakai hanya jika stockApi kosong (stok per browser)
+  stockApi: "",                  // URL Web App Google Apps Script untuk stok bersama (lihat stok-apps-script.gs)
+  promoCode: "EKOTPAGES",
+  promoEnd: "2027-01-23",        // promo otomatis hilang setelah tanggal ini
+  promoMin: 19000
 };
 /* price = harga awal (sebelum diskon). stock = jumlah stok tersisa (ubah manual setiap stok berubah).
    foto  = file jpg di folder foto/ pada repository. shopee = link produk di Shopee. */
@@ -244,7 +261,23 @@ const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; }
 const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 let orders = get(K_ORD, []);
 const STOCK_FROM = new Date(STORE.stockUpdated + "T00:00:00").getTime();
-const stockLeft = p => Math.max(0, p.stock - orders.filter(o => o.name === p.name && o.t >= STOCK_FROM).reduce((a, o) => a + (o.qty || 1), 0));
+let remote = {}, remoteJson = "";
+const stockLeft = p => {
+  if (STORE.stockApi && remote[p.name] !== undefined) return Math.max(0, remote[p.name]);
+  return Math.max(0, p.stock - orders.filter(o => o.name === p.name && o.t >= STOCK_FROM).reduce((a, o) => a + (o.qty || 1), 0));
+};
+async function loadStock(){
+  if (!STORE.stockApi) return;
+  try {
+    const j = await (await fetch(STORE.stockApi + (STORE.stockApi.includes("?") ? "&" : "?") + "t=" + Date.now())).json();
+    if (j.ok && JSON.stringify(j.stock) !== remoteJson) { remote = j.stock; remoteJson = JSON.stringify(j.stock); render(); }
+  } catch {}
+}
+async function sendOrder(name, qty){
+  if (!STORE.stockApi) return;
+  try { await fetch(STORE.stockApi, {method:"POST", mode:"no-cors", body:JSON.stringify({name, qty})}); } catch {}
+  await loadStock();
+}
 const ordered = n => orders.some(o => o.name === n);
 const toast = t => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 3200); };
 
@@ -301,11 +334,11 @@ function askPending(){
   $("#bx").onclick = closeBox;
   $("#yes").onclick = () => {
     orders.unshift({name:p.name, qty:q, t:Date.now()}); set(K_ORD, orders); localStorage.removeItem(K_PEND);
-    closeBox(); render(); toast("Kamu sudah memesan " + q + " " + p.name + ". Stok diperbarui.");
+    closeBox(); render(); toast("Kamu sudah memesan " + q + " " + p.name + ". Stok diperbarui."); sendOrder(p.name, q);
   };
   $("#no").onclick = () => { localStorage.removeItem(K_PEND); closeBox(); };
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden) askPending(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { askPending(); loadStock(); } });
 addEventListener("focus", askPending);
 
 function showOrders(){
@@ -329,12 +362,25 @@ function showOrders(){
       li.querySelector(".q").textContent = "×" + (o.qty || 1);
     });
     $("#cl").onclick = closeBox;
-    $("#clr").onclick = () => { if (confirm("Hapus semua riwayat pesanan di perangkat ini? Angka stok yang tampil juga ikut kembali.")) { orders = []; set(K_ORD, orders); closeBox(); render(); } };
+    $("#clr").onclick = () => { if (confirm("Hapus riwayat pesanan di perangkat ini?")) { orders = []; set(K_ORD, orders); closeBox(); render(); } };
   }
   $("#bx").onclick = closeBox;
 }
 $("#myOrders").onclick = showOrders;
-render();
+render(); loadStock(); setInterval(loadStock, 60000);
+
+/* ---------- Promo spesial ---------- */
+(() => {
+  const P = $("#promo"), end = new Date(STORE.promoEnd + "T23:59:59+07:00");
+  if (Date.now() > end) { P.hidden = true; return; }
+  const tgl = end.toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric", timeZone:"Asia/Jakarta"});
+  const html = `Promo spesial menyambut 2027 · Kode promo <b>${STORE.promoCode}</b> · Berlaku hingga ${tgl} · Diskon hingga 20% · Bisa diklaim saat checkout di Shopee · Minimal pembelian ${rp(STORE.promoMin)}`;
+  P.querySelectorAll(".mq-in span").forEach(x => x.innerHTML = html);
+  $("#copyCode").onclick = async () => {
+    try { await navigator.clipboard.writeText(STORE.promoCode); } catch {}
+    toast("Kode " + STORE.promoCode + " disalin. Tempel saat checkout di Shopee.");
+  };
+})();
 
 /* ---------- Background adaptif: jam, mode gelap, pointer ---------- */
 const THEMES = [[5,"#ffe3b8","#f4b27a","#d9774a"],[10,"#fbe9c6","#efb978","#c8793f"],[15,"#f9d3a1","#e4905a","#b8512f"],[18,"#d9a07c","#a85a4a","#5a2f45"],[21,"#6e4a47","#3f2630","#1f1320"]];
